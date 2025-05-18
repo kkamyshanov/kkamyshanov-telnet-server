@@ -2,7 +2,7 @@
  * @file tlntsrv.cpp
  * @author Konstantin Kamyshanov (kkamyshanov)
  * @brief Initialization, configuration, manage of the Telnet server/client.
- * @version 0.1.0
+ * @version 0.1.1
  * @date 2025-05-17
  *
  * @copyright Copyright (c) 2025
@@ -68,36 +68,13 @@ int tlnt_init_srv(const in_port_t port, int lqueue) {
         goto tlnt_init_srv_close_srv;
     }
     /* Success */
-    std::cout << "Telnet server started on port " << port << std::endl;
+    std::cout << "Telnet Server started on port " << port << std::endl;
     return srvsocket;
 
 tlnt_init_srv_close_srv:
-    tlnt_close_srv(srvsocket);
+    shutdown(srvsocket, SHUT_RDWR);
+    close(srvsocket);
     return (-1);
-}
-
-int tlnt_close_srv(int socket) {
-    /* Assertion */
-    if (socket < 0) {
-        std::cout << "Error: wrong socket value" << std::endl;
-        return (-1);
-    }
-    /* Close The Socket */
-    close(socket);
-    std::cout << "Close Server socket" << std::endl;
-    return 0;
-}
-
-int tlnt_close_clnt(int socket) {
-    /* Assertion */
-    if (socket < 0) {
-        std::cout << "Error: wrong socket value" << std::endl;
-        return (-1);
-    }
-    /* Close The Socket */
-    close(socket);
-    std::cout << "Client disconnected" << std::endl;
-    return 0;
 }
 
 int tlnt_accept_clnt(int srvsocket) {
@@ -131,10 +108,12 @@ static int tlnt_bind_srv(const int srvsocket,
     }
     /* Variables */
     sockaddr_in addr{}; /**< Socket address, internet style */
+    int opt = 1;
     /* Init Sockaddr */
     addr.sin_family = family;
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons(port);
     /* Bind */
+    setsockopt(srvsocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     return (bind(srvsocket, (sockaddr *)&addr, sizeof(addr)));
 }

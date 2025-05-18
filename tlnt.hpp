@@ -2,7 +2,7 @@
  * @file tlntsrv.hpp
  * @author Konstantin Kamyshanov (kkamyshanov)
  * @brief Initialization, configuration, manage of the Telnet server/client.
- * @version 0.1.0
+ * @version 0.1.1
  * @date 2025-05-17
  *
  * @copyright Copyright (c) 2025
@@ -33,28 +33,6 @@
  * @return int Socket on success, or -1 on failure.
  */
 int tlnt_init_srv(const in_port_t port, int lqueue);
-
-/**
- * @brief Closes the Telnet server socket.
- *
- * This function gracefully closes the server socket, releasing the system
- * resources associated with it.
- *
- * @param socket The file descriptor of the server socket to be closed.
- * @return int 0 on success, or -1 on failure.
- */
-int tlnt_close_srv(int socket);
-
-/**
- * @brief Closes the Telnet client socket.
- *
- * This function gracefully closes the client socket, releasing the system
- * resources associated with it.
- *
- * @param socket The file descriptor of the server socket to be closed.
- * @return int 0 on success, or -1 on failure.
- */
-int tlnt_close_clnt(int socket);
 
 /**
  * @brief Accepts a new client connection from the listening Telnet server socket.
