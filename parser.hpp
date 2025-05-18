@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef SESSION_HPP
-#define SESSION_HPP
+#ifndef PARSER_HPP
+#define PARSER_HPP
 
 //=============================================================================
 // Global Function Declarations
@@ -42,4 +42,4 @@
  */
 void parser_handler(int clntsocket, char *buf, const int buf_size);
 
-#endif /* SESSION_HPP */
+#endif /* PARSER_HPP */
