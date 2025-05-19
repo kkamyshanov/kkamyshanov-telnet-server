@@ -14,6 +14,8 @@
 // Includes
 //==============================================================================
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include <vector>
 #include <mutex>
 #include <algorithm>
@@ -29,6 +31,17 @@ static std::vector<char *> buffers;
 static std::mutex gc_mutex;
 
 //==============================================================================
+// Static Function Declarations
+//==============================================================================
+/**
+ * @brief Cleans up all active client connections.
+ *
+ * Expected behavior:
+ * - Closes all client sockets.
+ */
+static void gc_cleanup_clients();
+
+//==============================================================================
 // Global Function Definitions
 //==============================================================================
 void gc_register_socket(const int socket) {
@@ -39,15 +52,6 @@ void gc_register_socket(const int socket) {
     sockets.push_back(socket);
 }
 
-void gc_register_buffer(char *const buf) {
-    /* Mutex */
-    std::lock_guard<std::mutex> lock(gc_mutex);
-    /* Register Buffer */
-    std::cout << "Register: buffer " << static_cast<const void*>(buf) \
-    << std::endl;
-    buffers.push_back(buf);
-}
-
 void gc_unregister_socket(const int socket) {
     /* Mutex */
     std::lock_guard<std::mutex> lock(gc_mutex);
@@ -56,35 +60,33 @@ void gc_unregister_socket(const int socket) {
     if (fsocket != sockets.end()) {
         std::cout << "Unregister: socket " << socket << std::endl;
         sockets.erase(fsocket);
-    }
-}
-
-void gc_unregister_buffer(char *const buf) {
-    /* Mutex */
-    std::lock_guard<std::mutex> lock(gc_mutex);
-    /* Unregister Buffer */
-    auto fbuf = std::find(buffers.begin(), buffers.end(), buf);
-    if (fbuf != buffers.end()) {
-        std::cout << "Unregister: buffer " << static_cast<const void*>(buf) \
-        << std::endl;
-        buffers.erase(fbuf);
+        shutdown(socket, SHUT_RDWR);
+        close(socket);
+        std::cout << "Client disconnected" << std::endl;
     }
 }
 
 void gc_cleanup() {
+    gc_cleanup_clients();
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    std::cout << "Cleanup Success" << std::endl;
+}
+
+//==============================================================================
+// Static Function Definitions
+//==============================================================================
+static void gc_cleanup_clients() {
     /* Mutex */
     std::lock_guard<std::mutex> lock(gc_mutex);
     /* Cleanup */
+    if (sockets.size() == 0) {
+        return;
+    }
+    std::cout << "Cleanup All Clients" << std::endl;
     for (int socket : sockets) {
         std::cout << "Close: socket " << socket << std::endl;
         shutdown(socket, SHUT_RDWR);
         close(socket);
     }
-    for (char *buf : buffers) {
-        std::cout << "Free: buffer " << static_cast<const void*>(buf) \
-        << std::endl;
-        free(buf);
-    }
     sockets.clear();
-    buffers.clear();
 }

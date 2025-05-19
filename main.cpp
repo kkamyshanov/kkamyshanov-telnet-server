@@ -46,13 +46,12 @@ static void signal_handler(int signum);
 // Global Function Definitions
 //==============================================================================
 int main() {
+    /* TODO: Mutex Logger for Threading */
     /* Telnet Configurations */
     constexpr in_port_t TELNET_PORT = 2323;
     constexpr int LISTEN_QUEUE = 5;
-    constexpr int BUFFER_SIZE = 1024;
     /* Variables */
     int clntsocket; /**< Client socket (accepted connection) */
-    char *buf; /**< Client Data (Parser) */
     /* Signals Handlers */
     signal(SIGINT, signal_handler); /* Ctrl+C */
     signal(SIGTERM, signal_handler); /* kill <pid> */
@@ -69,18 +68,10 @@ int main() {
         clntsocket = tlnt_accept_clnt(srvsocket);
         if (clntsocket >= 0) {
             gc_register_socket(clntsocket);
-            buf = (char *)malloc(BUFFER_SIZE);
-            if (buf == NULL) {
-                std::cout << "Error: session buffer malloc failed" << std::endl;
-                gc_unregister_socket(clntsocket);
-                close(clntsocket);
-            } else {
-                gc_register_buffer(buf);
-                std::thread(parser_handler, clntsocket,
-                            buf, BUFFER_SIZE).detach();
-            }
+            std::thread(parser_handler, clntsocket).detach();
         }
     }
+    std::cout << " - Get signal_exit: " << signal_exit << std::endl;
     std::cout << "Finish the Telnet Server " << std::endl;
     /* Cleanup */
     gc_cleanup();
@@ -91,10 +82,10 @@ int main() {
 // Static Function Definitions
 //==============================================================================
 static void signal_handler(int signum) {
-    signal_exit = signum;
-    std::cout << " - Get signal_exit: " << signal_exit << std::endl;
-    if (srvsocket >= 0) {
+    if ((srvsocket >= 0)) {
         shutdown(srvsocket, SHUT_RDWR);
         close(srvsocket); /* wake up for client accept() */
+        srvsocket = (-1);
     }
+    signal_exit = signum;
 }

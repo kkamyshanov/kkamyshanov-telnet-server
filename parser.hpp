@@ -37,9 +37,13 @@
  * allocated resources.
  * 
  * @param clntsocket The file descriptor of the accepted client socket.
- * @param buf Buffer used for collecting and parsing client input.
- * @param buf_size The size of the input buffer.
  */
-void parser_handler(int clntsocket, char *buf, const int buf_size);
+void parser_handler(int clntsocket);
+
+/**
+ * @brief 
+ * 
+ */
+void parser_finish();
 
 #endif /* PARSER_HPP */
