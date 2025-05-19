@@ -120,8 +120,6 @@ void parser_handler(int clntsocket) {
     /* Telnet Session Configurations */
     /* TODO: constexpr unsigned short HISTORY_INDEX_MAX = 10; */
     constexpr std::string_view PROMPT("> ", 2);
-    /* constexpr std::string_view ARROW_UP("\x1b[A", 4); */
-    /* constexpr std::string_view ARROW_DOWN("\x1b[B", 4); */
     /* Assertion */
     if (clntsocket < 0) {
         std::cout << "Error: wrong socket value" << std::endl;
@@ -214,9 +212,10 @@ static int parser_fsm_main(const struct parse_config *const prscfg,
 
         if (!(prscfg->buf->empty())) {
             std::string line;
+            /* TODO: Command Parser (New Module) */
             if (*prscfg->buf == "help") {
                 line += "Base Telnet Server \r\n";
-                line += "Use ARROW_UP or ARROW_DOWN for restore comand \r\n";
+                line += "Use ARROW_UP or ARROW_DOWN for restore command \r\n";
             } else if (*prscfg->buf == "Pinata") {
                 line += "Tequila! \r\n";
             } else {
