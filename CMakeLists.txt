@@ -3,7 +3,11 @@ project(TelnetServer)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+if (MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+endif()
 
 add_executable(telnet_server
     main.cpp

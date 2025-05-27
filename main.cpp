@@ -14,9 +14,13 @@
 //==============================================================================
 // Includes
 //==============================================================================
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+#endif
 #include <iostream>
 #include <thread>
-#include <unistd.h>
 #include "tlnt.hpp"
 #include "parser.hpp"
 #include "gc.hpp"
