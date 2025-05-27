@@ -81,7 +81,23 @@ static int parser_fsm_main(const struct parse_config *const prscfg,
                            struct parse_data *const prsdata);
 
 /**
- * @brief Detects if the current input character is part of an arrow key escape sequence.
+ * @brief Skips `\n` following a carriage return `\r` from Windows clients.
+ *
+ * This function handles the scenario where input from a Windows-based Telnet
+ * client sends a carriage return followed by a newline (`\r\n`) upon pressing
+ * Enter. Since `\r` is already processed as the end-of-line marker,
+ * this function ensures that the subsequent `\n` character is ignored to
+ * prevent redundant state transitions or incorrect command parsing.
+ *
+ * @param prscfg Parsing configuration structure (e.g., socket, buffer limits).
+ * @param prsdata Parsing state and data (e.g., buffer pointer, current char).
+ * @return int Returns >=0 on normal termination, or <0 error code.
+ */
+static int parser_fsm_carriage_windows(const struct parse_config *const prscfg,
+                                       struct parse_data *const prsdata);
+
+/**
+ * @brief Detects if the input character is part of an arrow escape sequence.
  *
  * This function checks whether the current input byte is part of an
  * ANSI escape sequence that indicates an arrow key (Up, Down, Left, Right).
@@ -202,8 +218,8 @@ static int parser_fsm_main(const struct parse_config *const prscfg,
     case '\x04':
         return 1; /* Close the Client */
         break;
-    /* TODO: Windows Case */
     case '\r':
+        prsdata->func = reinterpret_cast<void *>(parser_fsm_carriage_windows);
     case '\n':
         if (send(prscfg->clntsocket, "\r\n", 2, 0) < 2) {
             std::cout << "Error: session send failed" << std::endl;
@@ -275,6 +291,25 @@ static int parser_fsm_main(const struct parse_config *const prscfg,
                 return (-1);
             }
         }
+        break;
+    }
+    return 0;
+}
+
+static int parser_fsm_carriage_windows(const struct parse_config *const prscfg,
+                                       struct parse_data *const prsdata) {
+    prsdata->func = reinterpret_cast<void *>(parser_fsm_main);
+    switch (prsdata->symb) {
+    case '\n':
+        /**
+         * Upon receiving the “Enter” command,
+         * an extra character from Windows systems is ignored.
+         */
+        std::cout << "Ignore an extra character from Windows" << std::endl;
+        break;
+
+    default:
+        return parser_fsm_main(prscfg, prsdata);
         break;
     }
     return 0;
